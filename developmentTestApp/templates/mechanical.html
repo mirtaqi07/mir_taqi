@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mechanical</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CSS -->
+    <style>
+      /* gradient navbar */
+      .navbar-custom {
+        background: linear-gradient(to bottom, #ffffff, #dedddd);
+      }
+      /* text prop */
+      .navbar-brand {
+        font-weight: bold;
+      }
+      /* green led */
+      .led-indicator {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background-color: rgb(32, 205, 32);
+        box-shadow: 0px 0px 5px 2px rgba(32, 205, 32, 0.5);
+      }
+      /* progressIndicator & text */
+      #progressChartContainer {
+        width: 250px;
+        height: 250px;
+        margin: 0 auto;
+        position: relative;
+      }
+      #progressText {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 16px;
+        color: black;
+        white-space: pre-line;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-light navbar-custom">
+      <a class="navbar-brand" href="#">Mechanical</a>
+      <div class="led-indicator"></div>
+    </nav>
+
+    <div class="container mt-4">
+      <div class="row">
+        <div class="col-md-4">
+          <!-- Widget -->
+          <div
+            id="widgetGraph"
+            class="card"
+            style="
+              /* height = 11rem is short here */
+              height: auto;
+              border-radius: 15px;
+              box-shadow: 0px 0px 7px 7px rgba(207, 208, 207, 0.5);
+            "
+          >
+            <div class="card-body">
+              <h5 class="card-title">EQUIPMENT</h5>
+              <div id="progressChartContainer">
+                <canvas id="progressChart"></canvas>
+                <div id="progressText">2/18 Running</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+      setTimeout(function () {
+        dashboardFunction();
+        // Call dashboardFunction every 3sec
+        setInterval(dashboardFunction, 3000);
+      }, 2000);
+
+      function dashboardFunction() {
+        // Ajax call
+        $.ajax({
+          url: "/mechanical/<str:equipment>",
+          data: { data: "status" },
+          dataType: "json",
+          success: function (response) {
+            // Process the response data
+            var runningCount = 0;
+            var stoppedCount = 0;
+            var faultCount = 0;
+            response.forEach(function (item) {
+              if (item.Status == 1) {
+                runningCount++;
+              } else {
+                stoppedCount++;
+              }
+              if (item.Fault == 1) {
+                faultCount++;
+              }
+            });
+            // Call function to generate chart options
+            var chartOptions = generateChartOptions(
+              runningCount,
+              stoppedCount,
+              faultCount
+            );
+            // Update progress chart with new data
+            progressChart.data.datasets[0].data = chartOptions.data;
+            progressChart.data.datasets[0].backgroundColor =
+              chartOptions.backgroundColor;
+            progressChart.update();
+          },
+          error: function (xhr, status, error) {
+            console.error("Ajax call error:", error);
+          },
+        });
+      }
+
+      // Function to generate chart options based on running, stopped, and fault counts
+      function generateChartOptions(runningCount, stoppedCount, faultCount) {
+        var totalEquipment = runningCount + stoppedCount + faultCount;
+        var runningPercentage = (runningCount / totalEquipment) * 100;
+        var stoppedPercentage = (stoppedCount / totalEquipment) * 100;
+        var faultPercentage = (faultCount / totalEquipment) * 100;
+        var backgroundColor = [];
+        var data = [];
+
+        // Check if fault count is > 1
+        if (faultCount > 0) {
+          backgroundColor = ["#007bff", "#cccccc", "#ff0000"];
+          data = [runningPercentage, stoppedPercentage, faultPercentage];
+        } else {
+          backgroundColor = ["#007bff", "#cccccc"];
+          data = [runningPercentage, stoppedPercentage];
+        }
+
+        // Return chart options
+        return {
+          data: data,
+          backgroundColor: backgroundColor,
+          title: runningCount + "/" + totalEquipment,
+        };
+      }
+
+      // Initialize progress chart
+      var ctx = document.getElementById("progressChart").getContext("2d");
+      var progressChart = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          datasets: [
+            {
+              data: [10, 90],
+              backgroundColor: ["#007bff", "#cccccc"],
+              borderWidth: 0,
+            },
+          ],
+          option: {
+            borderWidth: 1,
+          },
+        },
+      });
+
+      // Function to update progress chart dynamically
+      function updateProgress(completedPercentage) {
+        progressChart.data.datasets[0].data = [
+          completedPercentage,
+          100 - completedPercentage,
+        ];
+        progressChart.update();
+      }
+
+      // Example: Update progress to 10%
+      updateProgress(10);
+    </script>
+  </body>
+</html>
