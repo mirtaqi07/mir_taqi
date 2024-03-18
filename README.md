@@ -6,18 +6,15 @@
 
 <li>created the python venv, run
 
-</ul>
+```shell
+python -m venv venv
+```
 
 ```shell
 venv\Scripts\activate
 ```
 
-<ul>
-
-<li> it was not mention, but ignored 'Lib' in venv
-
-<li> run now 
-</ul>
+<li> run now
 
 ```shell
 pip install -r requirements.txt
@@ -26,7 +23,7 @@ pip install -r requirements.txt
 <ul>
 <li> installed django & inited the project run
 
-`python -m http.server`
+`python manage.py runserver`
 
 <li> set the static & media folder
 
@@ -43,7 +40,7 @@ pip install -r requirements.txt
 <li> by default html file is loaded and
 
 `/mechanical/<str:equipment>`
-returns the equipment, try running `http://localhost:8000/mechanical/equipmentValue`
+returns the equipment, try running `http://localhost:8000/mechanical/equipmentValue` you can change equipmentValue
 
 <li> Status & Fault UI doesnt work, still needs to make logic better
 </ul>
