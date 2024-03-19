@@ -19,7 +19,7 @@ venv\Scripts\activate
 ```shell
 pip install -r requirements.txt
 ```
-
+</ul>
 <ul>
 <li> installed django & inited the project run
 
